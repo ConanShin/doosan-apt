@@ -47,7 +47,7 @@ function getTotalUnits(structure) {
     );
     return total;
 }
-const TOTAL_UNITS = 1267;
+const TOTAL_UNITS = Math.ceil(1267/2);
 
 // 참여 현황 객체
 let participation = {};
@@ -250,7 +250,7 @@ function render() {
         aptArea.appendChild(dongDiv);
     });
 
-    document.getElementById('countText').textContent = `현재 참여/전체 세대수: ${count} / ${TOTAL_UNITS}`;
+    document.getElementById('countText').textContent = `참여/목표 세대수(1267세대 절반): ${count} / ${TOTAL_UNITS}`;
     // 50% 달성 여부 확인
     const isHalf = count >= TOTAL_UNITS * 0.5;
     document.getElementById('goalMsg').style.display = isHalf ? 'none' : '';
