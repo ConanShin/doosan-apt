@@ -232,6 +232,11 @@ function render() {
                         if (phoneInput) phoneInput.value = '';
                         const statusSelect = document.getElementById('status');
                         if (statusSelect) statusSelect.value = '';
+
+                        const donateSection = document.getElementById('donate');
+                        if (donateSection) {
+                            donateSection.scrollIntoView({ behavior: 'smooth' });
+                        }
                     });
 
                 } else {
