@@ -221,6 +221,13 @@ main {
   box-shadow: 0 1px 4px rgba(251,191,36,0.07);
 }
 
+.ho-cell.confirmed {
+  background: #2485fb;
+  color: #fff;
+  border: 1.5px solid #2468fb;
+  box-shadow: 0 1px 4px rgba(251,191,36,0.07);
+}
+
 footer {
   background: #222;
   color: #fff;
@@ -228,4 +235,17 @@ footer {
   padding: 18px 0 10px 0;
   font-size: 15px;
   margin-top: 40px;
+}
+
+#logoutBtn {
+  padding: 8px 22px;
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: bold;
+  float: right;
 }

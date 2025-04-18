@@ -4,6 +4,10 @@ const supabase = window.supabase.createClient(
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtoc2Z1c2Z4eWxva2RvaWJ4cmJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyMzc0NjYsImV4cCI6MjA1NzgxMzQ2Nn0.vQ6nKgvvLdtjUU7iyxxqsO_s--V_jYIpEYJMHdXOrfQ'
 );
 
+supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) window.location.href = 'admin-login.html';
+});
+
 // 아파트 구조 생성 (동, 층, 호수 예외 모두 반영)
 function makeRoomNumber(floor, ho) {
     return `${floor < 10 ? '0' : ''}${floor}${ho < 10 ? '0' : ''}${ho}`;
@@ -47,7 +51,7 @@ let participationConfirm = {};
 // Supabase에서 참여 현황을 불러오기
 async function fetchParticipation() {
     const { data: participationData, error: participationError } = await supabase
-        .from('participation_public')
+        .from('participation')
         .select();
 
     if (participationError) {
@@ -56,7 +60,7 @@ async function fetchParticipation() {
     }
 
     const { data: participationConfirmData, error: participationConfirmError } = await supabase
-        .from('participation_confirm_public')
+        .from('participation_confirm')
         .select();
 
     if (participationConfirmError) {
@@ -91,6 +95,7 @@ function parseHoNumber(hoStr) {
         return null;
     }
 }
+
 
 // 등록 함수
 async function register() {
@@ -131,7 +136,38 @@ async function register() {
         return;
     }
 
-    if (status === '취소') {
+    if (status === '확인') {
+        const { data: participationConfirmData, error: participationConfirmError } = await supabase
+            .from('participation_confirm')
+            .upsert([{
+                dong,
+                floor: Number(floor),
+                ho: hoNum,
+                phone,
+                status
+            }], {
+                onConflict: 'dong,floor,ho' // dong, floor, ho의 조합이 unique constraint여야 함
+            });
+
+        if (participationConfirmError) {
+            alert('저장 중 오류가 발생했습니다: ' + participationConfirmError.message);
+            return;
+        }
+    } else if (status === '취소') {
+        const { data: participationConfirmData, error: participationConfirmError } = await supabase
+            .from('participation_confirm')
+            .delete()
+            .match({
+                dong,
+                floor: Number(floor),
+                ho: hoNum
+            });
+
+        if (participationConfirmError) {
+            alert('삭제 중 오류가 발생했습니다: ' + participationConfirmError.message);
+            return;
+        }
+
         const { data, error } = await supabase
             .from('participation')
             .delete()
@@ -146,6 +182,19 @@ async function register() {
             return;
         }
     } else {
+        const { data: participationConfirmData, error: participationConfirmError } = await supabase
+            .from('participation_confirm')
+            .delete()
+            .match({
+                dong,
+                floor: Number(floor),
+                ho: hoNum
+            });
+
+        if (participationConfirmError) {
+            alert('삭제 중 오류가 발생했습니다: ' + participationConfirmError.message);
+            return;
+        }
         // Supabase에 upsert (insert or update)
         const { data, error } = await supabase
             .from('participation')
@@ -243,9 +292,9 @@ function render() {
                         const hoInput = document.getElementById('ho');
                         if (hoInput) hoInput.value = `${floor}${ho < 10 ? '0' + ho : ho}호`;
                         const phoneInput = document.getElementById('phone');
-                        if (phoneInput) phoneInput.value = '';
+                        if (phoneInput) phoneInput.value = isConfirmed ? isConfirmed.phone : (info ? info.phone : '');
                         const statusSelect = document.getElementById('status');
-                        if (statusSelect) statusSelect.value = '';
+                        if (statusSelect) statusSelect.value = isConfirmed ? isConfirmed.status : (info ? info.status : '');
 
                         const donateSection = document.getElementById('donate');
                         if (donateSection) {
@@ -265,10 +314,6 @@ function render() {
     });
 
     document.getElementById('countText').textContent = `참여/목표 세대수(1267세대 절반): ${count} / ${TOTAL_UNITS}`;
-    // 50% 달성 여부 확인
-    const isHalf = count >= TOTAL_UNITS * 0.5;
-    document.getElementById('goalMsg').style.display = isHalf ? 'none' : '';
-    document.getElementById('congratsMsg').style.display = isHalf ? '' : 'none';
 
     // 진행률 바
     const progressBar = document.getElementById('progress-bar');
@@ -276,8 +321,10 @@ function render() {
         progressBar.style.width = `${(count / TOTAL_UNITS) * 100}%`;
     }
 }
-
-
+document.getElementById('logoutBtn').onclick = async function() {
+    await supabase.auth.signOut();
+    window.location.href = 'admin-login.html';
+};
 // 이벤트 연결
 window.onload = fetchParticipation;
 document.addEventListener('DOMContentLoaded', function() {

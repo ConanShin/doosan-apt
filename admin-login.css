@@ -1,0 +1,86 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.center-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f7f9fa;
+}
+
+.form-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    background: #fff;
+    padding: 28px 20px 24px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    min-width: 260px;
+    max-width: 380px;
+    width: 90vw;
+}
+
+.form-area h1 {
+    margin-bottom: 12px;
+    font-size: 1.5rem;
+    color: #222;
+}
+
+.form-area input, .form-area button {
+    width: 100%;
+    max-width: 340px;
+    box-sizing: border-box;
+    padding: 13px 14px;
+    font-size: 1.1rem;
+    border: 1px solid #bbb;
+    border-radius: 5px;
+    margin: 0;
+}
+
+.form-area input:focus {
+    border-color: #3b82f6;
+    outline: none;
+}
+
+.form-area button {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+}
+
+.form-area button:hover {
+    background: #2563eb;
+}
+
+#loginMsg {
+    width: 100%;
+    min-height: 22px;
+    text-align: center;
+    font-size: 1rem;
+    margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+    .form-area {
+        max-width: 98vw;
+        padding: 16px 6vw 14px 6vw;
+    }
+    .form-area h1 {
+        font-size: 1.2rem;
+    }
+    .form-area input, .form-area button {
+        font-size: 1rem;
+        max-width: 100%;
+        padding: 11px 8px;
+    }
+}
