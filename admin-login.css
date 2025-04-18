@@ -105,3 +105,58 @@ html, body {
         padding: 13px 3px;
     }
 }
+
+.remember-label {
+    display: flex;
+    align-items: center;
+    font-size: 1rem;
+    margin: 8px 0 0 2px;
+    cursor: pointer;
+    user-select: none;
+    gap: 8px;
+}
+
+/* 기본 체크박스 숨기기 */
+.remember-label input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    border: 2px solid #bbb;
+    border-radius: 5px;
+    background: #fff;
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    display: inline-block;
+    vertical-align: middle;
+    padding: 15px;
+}
+
+/* 체크박스 체크 시 스타일 */
+.remember-label input[type="checkbox"]:checked {
+    border-color: #3b82f6;
+    background: #3b82f6;
+}
+
+/* 체크 표시 (체크 시 보임) */
+.remember-label input[type="checkbox"]:checked::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 10px;
+    top: 4px;
+    width: 7px;
+    height: 13px;
+    border: solid #fff;
+    border-width: 0 3px 3px 0;
+    transform: rotate(45deg);
+}
+
+/* 텍스트와 체크박스 간격 조정 */
+.remember-label .custom-checkbox {
+    display: none; /* 예시에서는 사용하지 않으니 숨김 */
+}
+
