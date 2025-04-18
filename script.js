@@ -55,7 +55,7 @@ let participation = {};
 // Supabase에서 참여 현황을 불러오기
 async function fetchParticipation() {
     const { data, error } = await supabase
-        .from('participation')
+        .from('participation_public')
         .select();
 
     if (error) {
@@ -124,22 +124,38 @@ async function register() {
         return;
     }
 
-    // Supabase에 upsert (insert or update)
-    const { data, error } = await supabase
-        .from('participation')
-        .upsert([{
-            dong,
-            floor: Number(floor),
-            ho: hoNum,
-            phone,
-            status
-        }], {
-            onConflict: 'dong,floor,ho' // dong, floor, ho의 조합이 unique constraint여야 함
-        });
+    if (status === '취소') {
+        const { data, error } = await supabase
+            .from('participation')
+            .delete()
+            .match({
+                dong,
+                floor: Number(floor),
+                ho: hoNum
+            });
 
-    if (error) {
-        alert('저장 중 오류가 발생했습니다: ' + error.message);
-        return;
+        if (error) {
+            alert('삭제 중 오류가 발생했습니다: ' + error.message);
+            return;
+        }
+    } else {
+        // Supabase에 upsert (insert or update)
+        const { data, error } = await supabase
+            .from('participation')
+            .upsert([{
+                dong,
+                floor: Number(floor),
+                ho: hoNum,
+                phone,
+                status
+            }], {
+                onConflict: 'dong,floor,ho' // dong, floor, ho의 조합이 unique constraint여야 함
+            });
+
+        if (error) {
+            alert('저장 중 오류가 발생했습니다: ' + error.message);
+            return;
+        }
     }
 
     // 저장 후 참여 현황 갱신
