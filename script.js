@@ -47,7 +47,7 @@ function getTotalUnits(structure) {
     );
     return total;
 }
-const TOTAL_UNITS = getTotalUnits(structure);
+const TOTAL_UNITS = 1267;
 
 // 참여 현황 객체
 let participation = {};
