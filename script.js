@@ -250,7 +250,7 @@ function render() {
         aptArea.appendChild(dongDiv);
     });
 
-    document.getElementById('countText').textContent = `현재 참여/완료 세대수: ${count} / ${TOTAL_UNITS}`;
+    document.getElementById('countText').textContent = `현재 참여/전체 세대수: ${count} / ${TOTAL_UNITS}`;
     // 50% 달성 여부 확인
     const isHalf = count >= TOTAL_UNITS * 0.5;
     document.getElementById('goalMsg').style.display = isHalf ? 'none' : '';
