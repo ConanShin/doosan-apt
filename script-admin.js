@@ -229,6 +229,7 @@ function render() {
     const aptArea = document.getElementById('aptArea');
     aptArea.innerHTML = '';
     let count = 0;
+    let confirmedCount = 0;
 
     Object.entries(structure).forEach(([dong, floors]) => {
         const dongDiv = document.createElement('div');
@@ -269,6 +270,7 @@ function render() {
                         cell.classList.add('confirmed');
                         cell.title = `${floor}층 ${ho}호 - 모금 확인`;
                         count++;
+                        confirmedCount++;
                     } else {
                         if (info) {
                             if (info.status === '완료') {
@@ -314,6 +316,7 @@ function render() {
     });
 
     document.getElementById('countText').textContent = `참여/목표 세대수(1267세대 절반): ${count} / ${TOTAL_UNITS}`;
+    document.getElementById('countText2').textContent = `완료: ${confirmedCount} 의사있음: ${count - confirmedCount}`;
 
     // 진행률 바
     const progressBar = document.getElementById('progress-bar');
