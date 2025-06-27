@@ -60,7 +60,6 @@ body {
 }
 
 main {
-  max-width: 960px;
   margin: 0 auto;
   padding: 32px 16px 0 16px;
 }
@@ -162,7 +161,6 @@ main {
   justify-content: center;
   gap: 18px;
   margin: 0 auto;
-  max-width: 1200px;
 }
 
 .dong-block {
@@ -191,8 +189,8 @@ main {
 }
 
 .ho-cell {
-  width: 30px;
-  height: 30px;
+  width: 20px;
+  height: 20px;
   margin-left: 3px;
   display: inline-flex;
   align-items: center;
@@ -237,7 +235,7 @@ footer {
   margin-top: 40px;
 }
 
-#logoutBtn {
+#logoutBtn, #menuBtn {
   padding: 8px 22px;
   background: #3b82f6;
   color: #fff;
@@ -248,4 +246,5 @@ footer {
   transition: background 0.2s;
   font-weight: bold;
   float: right;
+  margin-right: 10px;
 }

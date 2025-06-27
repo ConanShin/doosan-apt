@@ -1,8 +1,16 @@
+// === 테이블명 변수로 선언 ===
+const PARTICIPATION_TABLE = 'participation';
+const PARTICIPATION_CONFIRM_TABLE = 'participation_confirm';
+
 // Supabase 클라이언트 생성 (window.supabase는 CDN으로 로드됨)
 const supabase = window.supabase.createClient(
     'https://khsfusfxylokdoibxrbf.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtoc2Z1c2Z4eWxva2RvaWJ4cmJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDIyMzc0NjYsImV4cCI6MjA1NzgxMzQ2Nn0.vQ6nKgvvLdtjUU7iyxxqsO_s--V_jYIpEYJMHdXOrfQ'
 );
+
+supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) window.location.href = 'admin-login.html';
+});
 
 // 아파트 구조 생성 (동, 층, 호수 예외 모두 반영)
 function makeRoomNumber(floor, ho) {
@@ -39,15 +47,16 @@ Object.entries(aptRules).forEach(([dong, rule]) => {
     }
 });
 
-const TOTAL_UNITS = Math.ceil(1267/2);
+const TOTAL_UNITS = 150;
 
 // 참여 현황 객체
 let participation = {};
 let participationConfirm = {};
+
 // Supabase에서 참여 현황을 불러오기
 async function fetchParticipation() {
     const { data: participationData, error: participationError } = await supabase
-        .from('participation_public')
+        .from(PARTICIPATION_TABLE)
         .select();
 
     if (participationError) {
@@ -56,7 +65,7 @@ async function fetchParticipation() {
     }
 
     const { data: participationConfirmData, error: participationConfirmError } = await supabase
-        .from('participation_confirm_public')
+        .from(PARTICIPATION_CONFIRM_TABLE)
         .select();
 
     if (participationConfirmError) {
@@ -131,9 +140,40 @@ async function register() {
         return;
     }
 
-    if (status === '취소') {
+    if (status === '확인') {
+        const { data: participationConfirmData, error: participationConfirmError } = await supabase
+            .from(PARTICIPATION_CONFIRM_TABLE)
+            .upsert([{
+                dong,
+                floor: Number(floor),
+                ho: hoNum,
+                phone,
+                status_consent: status
+            }], {
+                onConflict: 'dong,floor,ho' // dong, floor, ho의 조합이 unique constraint여야 함
+            });
+
+        if (participationConfirmError) {
+            alert('저장 중 오류가 발생했습니다: ' + participationConfirmError.message);
+            return;
+        }
+    } else if (status === '취소') {
+        const { data: participationConfirmData, error: participationConfirmError } = await supabase
+            .from(PARTICIPATION_CONFIRM_TABLE)
+            .delete()
+            .match({
+                dong,
+                floor: Number(floor),
+                ho: hoNum
+            });
+
+        if (participationConfirmError) {
+            alert('삭제 중 오류가 발생했습니다: ' + participationConfirmError.message);
+            return;
+        }
+
         const { data, error } = await supabase
-            .from('participation')
+            .from(PARTICIPATION_TABLE)
             .delete()
             .match({
                 dong,
@@ -146,15 +186,28 @@ async function register() {
             return;
         }
     } else {
+        const { data: participationConfirmData, error: participationConfirmError } = await supabase
+            .from(PARTICIPATION_CONFIRM_TABLE)
+            .delete()
+            .match({
+                dong,
+                floor: Number(floor),
+                ho: hoNum
+            });
+
+        if (participationConfirmError) {
+            alert('삭제 중 오류가 발생했습니다: ' + participationConfirmError.message);
+            return;
+        }
         // Supabase에 upsert (insert or update)
         const { data, error } = await supabase
-            .from('participation')
+            .from(PARTICIPATION_TABLE)
             .upsert([{
                 dong,
                 floor: Number(floor),
                 ho: hoNum,
                 phone,
-                status
+                status_consent: status
             }], {
                 onConflict: 'dong,floor,ho' // dong, floor, ho의 조합이 unique constraint여야 함
             });
@@ -180,6 +233,7 @@ function render() {
     const aptArea = document.getElementById('aptArea');
     aptArea.innerHTML = '';
     let count = 0;
+    let confirmedCount = 0;
 
     Object.entries(structure).forEach(([dong, floors]) => {
         const dongDiv = document.createElement('div');
@@ -216,17 +270,18 @@ function render() {
 
                 if (floors[floor].includes(hoNum)) {
                     // 실제 존재하는 호수
-                    if (isConfirmed) {
+                    if (isConfirmed && isConfirmed.status_consent) {
                         cell.classList.add('confirmed');
                         cell.title = `${floor}층 ${ho}호 - 모금 확인`;
                         count++;
+                        confirmedCount++;
                     } else {
                         if (info) {
-                            if (info.status === '완료') {
+                            if (info.status_consent === '완료') {
                                 cell.classList.add('completed');
                                 cell.title = `${floor}층 ${ho}호 - 모금 완료`;
                                 count++;
-                            } else if (info.status === '참여') {
+                            } else if (info.status_consent === '참여') {
                                 cell.classList.add('participated');
                                 cell.title = `${floor}층 ${ho}호 - 모금 의사`;
                                 count++;
@@ -243,9 +298,9 @@ function render() {
                         const hoInput = document.getElementById('ho');
                         if (hoInput) hoInput.value = `${floor}${ho < 10 ? '0' + ho : ho}호`;
                         const phoneInput = document.getElementById('phone');
-                        if (phoneInput) phoneInput.value = '';
+                        if (phoneInput) phoneInput.value = isConfirmed ? isConfirmed.phone : (info ? info.phone : '');
                         const statusSelect = document.getElementById('status');
-                        if (statusSelect) statusSelect.value = '';
+                        if (statusSelect) statusSelect.value = isConfirmed ? isConfirmed.status_consent : (info ? info.status_consent : '');
 
                         const donateSection = document.getElementById('donate');
                         if (donateSection) {
@@ -265,10 +320,7 @@ function render() {
     });
 
     document.getElementById('countText').textContent = `참여/목표 세대수(1267세대 절반): ${count} / ${TOTAL_UNITS}`;
-    // 50% 달성 여부 확인
-    const isHalf = count >= TOTAL_UNITS * 0.5;
-    document.getElementById('goalMsg').style.display = isHalf ? 'none' : '';
-    document.getElementById('congratsMsg').style.display = isHalf ? '' : 'none';
+    document.getElementById('countText2').textContent = `완료: ${confirmedCount} 의사있음: ${count - confirmedCount}`;
 
     // 진행률 바
     const progressBar = document.getElementById('progress-bar');
@@ -277,7 +329,14 @@ function render() {
     }
 }
 
+document.getElementById('menuBtn').onclick = async function() {
+    window.location.href = '../menu.html';
+};
 
+document.getElementById('logoutBtn').onclick = async function() {
+    await supabase.auth.signOut();
+    window.location.href = '../index.html';
+};
 // 이벤트 연결
 window.onload = fetchParticipation;
 document.addEventListener('DOMContentLoaded', function() {

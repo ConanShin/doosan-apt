@@ -1,5 +1,5 @@
 <head>
-    <link rel="stylesheet" href="admin-login.css">
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
 <div class="center-container">
@@ -59,14 +59,14 @@
             msg.textContent = '로그인 실패: ' + error.message;
             return;
         }
-        window.location.href = 'admin.html';
+        window.location.href = 'menu.html';
     }
 
     document.getElementById('loginForm').addEventListener('submit', doLogin);
 
     // 이미 로그인된 경우 admin.html로 이동
     supabase.auth.getSession().then(({data: {session}}) => {
-        if (session) window.location.href = 'admin.html';
+        if (session) window.location.href = 'menu.html';
     });
 </script>
 </body>
