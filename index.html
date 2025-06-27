@@ -20,7 +20,6 @@
             transition: background-image 1.5s ease-in-out;
             animation: fadeBg 24s infinite;
         }
-
         .container {
             background: rgba(255, 255, 255, 0.9);
             padding: 40px 32px;
@@ -36,7 +35,6 @@
             z-index: 1;
             position: relative;
         }
-
         h1 {
             color: #1976d2;
             font-size: 2.1rem;
@@ -44,14 +42,12 @@
             letter-spacing: -1px;
             text-align: center;
         }
-
         .button-row {
             display: flex;
             gap: 24px;
             justify-content: center;
             flex-wrap: wrap;
         }
-
         .main-btn {
             width: 120px;
             height: 120px;
@@ -71,7 +67,6 @@
             word-break: keep-all;
             line-height: 1.3;
         }
-
         .main-btn.fund-btn {
             background: linear-gradient(135deg, #1976d2 60%, #42a5f5 100%);
         }
@@ -81,7 +76,6 @@
             transform: translateY(-2px) scale(1.04);
             outline: none;
         }
-
         .main-btn.consent-btn {
             background: linear-gradient(135deg, #2E7D32 60%, #4CAF50 100%);
         }
@@ -91,7 +85,6 @@
             transform: translateY(-2px) scale(1.04);
             outline: none;
         }
-
         @media (max-width: 600px) {
             .container {
                 padding: 24px 8px;
@@ -111,17 +104,56 @@
                 border-radius: 14px;
             }
         }
+        /* 로딩 오버레이 스타일 */
+        #loading-overlay {
+            position: fixed;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(255,255,255,0.96);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s;
+        }
+        #progress-bar-container {
+            width: 240px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        #progress-bar {
+            height: 20px;
+            width: 0%;
+            background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+            transition: width 0.3s;
+        }
+        #progress-text {
+            margin-top: 16px;
+            font-size: 1.2rem;
+            color: #1976d2;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-<div class="container">
+<!-- 로딩 오버레이 -->
+<div id="loading-overlay">
+    <div style="font-size:1.3rem; color:#1976d2; font-weight:600;">이미지 로딩 중...</div>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
+    <div id="progress-text">0%</div>
+</div>
+<div class="container" style="display:none;">
     <h1>두산아파트 재개발 현황</h1>
     <div class="button-row">
         <a href="fund/index.html" class="main-btn fund-btn">모금현황</a>
         <a href="consent/index.html" class="main-btn consent-btn">동의서<br>제출 현황</a>
     </div>
 </div>
-
 <script>
     const images = [
         "resource/1.png",
@@ -129,16 +161,45 @@
         "resource/3.png",
         "resource/2.png",
     ];
+    let loaded = 0;
+    const total = images.length;
 
+    // 프로그래스 바 업데이트 함수
+    function updateProgress() {
+        const percent = Math.round((loaded / total) * 100);
+        document.getElementById('progress-bar').style.width = percent + '%';
+        document.getElementById('progress-text').textContent = percent + '%';
+    }
+
+    // 이미지 프리로드
+    images.forEach(src => {
+        const img = new Image();
+        img.onload = img.onerror = () => {
+            loaded++;
+            updateProgress();
+            if (loaded === total) {
+                // 모두 로드 완료
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.opacity = 0;
+                    setTimeout(() => {
+                        document.getElementById('loading-overlay').style.display = 'none';
+                        document.querySelector('.container').style.display = '';
+                        // 배경 시작
+                        changeBackground();
+                        setInterval(changeBackground, 2000);
+                    }, 500);
+                }, 300); // 약간의 딜레이로 부드럽게
+            }
+        };
+        img.src = src;
+    });
+
+    // 배경 이미지 순환
     let current = 0;
-
     function changeBackground() {
         document.body.style.backgroundImage = `url('${images[current]}')`;
         current = (current + 1) % images.length;
     }
-
-    changeBackground(); // 초기 설정
-    setInterval(changeBackground, 2000); // 6초마다 전환
 </script>
 </body>
 </html>
