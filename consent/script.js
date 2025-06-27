@@ -234,7 +234,7 @@ function render() {
     });
 
     document.getElementById('countText').textContent =
-        `참여/목표 세대수(${TOTAL_UNITS}): ${count} / ${TOTAL_UNITS}`;
+        `참여/목표 세대수(${TOTAL_UNITS} 세대): ${count} / ${TOTAL_UNITS}`;
 
     // 50% 달성 여부에 따른 메시지 표시
     const isHalf = count >= TOTAL_UNITS * 0.5;

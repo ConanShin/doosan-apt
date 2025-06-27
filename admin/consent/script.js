@@ -319,7 +319,7 @@ function render() {
         aptArea.appendChild(dongDiv);
     });
 
-    document.getElementById('countText').textContent = `참여/목표 세대수(1267세대 절반): ${count} / ${TOTAL_UNITS}`;
+    document.getElementById('countText').textContent = `참여/목표 세대수(${TOTAL_UNITS} 세대): ${count} / ${TOTAL_UNITS}`;
     document.getElementById('countText2').textContent = `완료: ${confirmedCount} 의사있음: ${count - confirmedCount}`;
 
     // 진행률 바
