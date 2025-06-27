@@ -15,10 +15,7 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            background-size: cover;
-            background-position: center;
-            transition: background-image 1.5s ease-in-out;
-            animation: fadeBg 24s infinite;
+            background: #f6f8fb;
         }
         .container {
             background: rgba(255, 255, 255, 0.9);
@@ -136,9 +133,34 @@
             color: #1976d2;
             font-weight: 600;
         }
+        /* 배경 이미지 페이드 전환 */
+        #bg-img-wrapper {
+            position: fixed;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .bg-img {
+            position: absolute;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            object-fit: cover;
+            transition: opacity 1.5s;
+            opacity: 0;
+            z-index: 1;
+        }
+        .bg-img.active {
+            opacity: 1;
+            z-index: 2;
+        }
     </style>
 </head>
 <body>
+<!-- 배경 이미지 페이드 전환용 -->
+<div id="bg-img-wrapper">
+    <img class="bg-img" id="bg1" src="" alt="">
+    <img class="bg-img" id="bg2" src="" alt="">
+</div>
 <!-- 로딩 오버레이 -->
 <div id="loading-overlay">
     <div style="font-size:1.3rem; color:#1976d2; font-weight:600;">이미지 로딩 중...</div>
@@ -163,6 +185,10 @@
     ];
     let loaded = 0;
     const total = images.length;
+    let current = 0;
+    let next = 1;
+    let bgInterval = null;
+    const imgEls = [document.getElementById('bg1'), document.getElementById('bg2')];
 
     // 프로그래스 바 업데이트 함수
     function updateProgress() {
@@ -172,34 +198,67 @@
     }
 
     // 이미지 프리로드
-    images.forEach(src => {
-        const img = new Image();
-        img.onload = img.onerror = () => {
-            loaded++;
-            updateProgress();
-            if (loaded === total) {
-                // 모두 로드 완료
-                setTimeout(() => {
-                    document.getElementById('loading-overlay').style.opacity = 0;
-                    setTimeout(() => {
-                        document.getElementById('loading-overlay').style.display = 'none';
-                        document.querySelector('.container').style.display = '';
-                        // 배경 시작
-                        changeBackground();
-                        setInterval(changeBackground, 2000);
-                    }, 500);
-                }, 300); // 약간의 딜레이로 부드럽게
-            }
-        };
-        img.src = src;
-    });
-
-    // 배경 이미지 순환
-    let current = 0;
-    function changeBackground() {
-        document.body.style.backgroundImage = `url('${images[current]}')`;
-        current = (current + 1) % images.length;
+    function preloadImages(arr, callback) {
+        loaded = 0;
+        arr.forEach(src => {
+            const img = new Image();
+            img.onload = img.onerror = () => {
+                loaded++;
+                updateProgress();
+                if (loaded === arr.length && callback) callback();
+            };
+            img.src = src;
+        });
     }
+
+    // 배경 전환 함수 (opacity 페이드)
+    function fadeBackground() {
+        next = (current + 1) % images.length;
+        // 다음 이미지 준비
+        imgEls[1].src = images[next];
+        imgEls[1].classList.add('active');
+        imgEls[0].classList.remove('active');
+        // 1.5초 후 인덱스 교체
+        setTimeout(() => {
+            // 인덱스 교체 (swap)
+            [imgEls[0], imgEls[1]] = [imgEls[1], imgEls[0]];
+            current = next;
+        }, 1500);
+    }
+
+    // 앱 시작
+    function startApp() {
+        document.getElementById('loading-overlay').style.opacity = 0;
+        setTimeout(() => {
+            document.getElementById('loading-overlay').style.display = 'none';
+            document.querySelector('.container').style.display = '';
+            // 첫 이미지 세팅
+            imgEls[0].src = images[0];
+            imgEls[0].classList.add('active');
+            imgEls[1].classList.remove('active');
+            current = 0;
+            // 2초마다 전환
+            if (bgInterval) clearInterval(bgInterval);
+            bgInterval = setInterval(fadeBackground, 2000);
+        }, 500);
+    }
+
+    // 최초 진입 또는 새로고침 시
+    preloadImages(images, startApp);
+
+    // 뒤로가기(bfcache) 복원 시 처리
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            // 기존 interval 제거
+            if (bgInterval) clearInterval(bgInterval);
+            // 이미지 상태 복원
+            imgEls[0].src = images[current];
+            imgEls[0].classList.add('active');
+            imgEls[1].classList.remove('active');
+            // interval 재시작
+            bgInterval = setInterval(fadeBackground, 2000);
+        }
+    });
 </script>
 </body>
 </html>
